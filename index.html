@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GALTON BOARD — A Statistical Demonstration</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            color: #000000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            font-weight: 300;
+            color: #666;
+            letter-spacing: 0.05em;
+        }
+
+        #container {
+            background: #ffffff;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        #canvas {
+            display: block;
+            margin: 0 auto;
+            background: #000000;
+            border: 1px solid #000000;
+        }
+
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 32px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border: 1px solid #000000;
+            background: #ffffff;
+            color: #000000;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .parameters {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+        }
+
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .parameter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        select {
+            padding: 10px 15px;
+            font-size: 13px;
+            font-family: inherit;
+            border: 1px solid #000000;
+            background: #ffffff;
+            color: #000000;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.02em;
+        }
+
+        select:hover {
+            background: #f5f5f5;
+        }
+
+        select:focus {
+            outline: none;
+            background: #000000;
+            color: #ffffff;
+        }
+
+        select option {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .range-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 1px;
+            background: #000000;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #000000;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.5);
+        }
+
+        .value-display {
+            min-width: 60px;
+            text-align: right;
+            font-size: 13px;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .statistics {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid #e0e0e0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 300;
+            font-variant-numeric: tabular-nums;
+        }
+
+        #entropyInfo {
+            grid-column: span 2;
+        }
+
+        #entropyValue {
+            font-size: 14px !important;
+            font-weight: 400 !important;
+            letter-spacing: 0.05em;
+        }
+
+        .footer {
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Galton Board</h1>
+        <p class="subtitle">A Mathematical Visualization of Normal Distribution</p>
+    </div>
+    
+    <div id="container">
+        <canvas id="canvas" width="600" height="600"></canvas>
+        
+        <div class="controls">
+            <button id="startBtn">Start</button>
+            <button id="pauseBtn">Pause</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+
+        <div class="parameters">
+            <h2 class="section-title">Parameters</h2>
+            <div class="parameter-grid">
+                <div class="parameter-item">
+                    <label>Random Number Generator</label>
+                    <select id="rngSelector">
+                        <option value="default">Standard Pseudorandom (Math.random)</option>
+                        <option value="lcg">Linear Congruential Generator</option>
+                        <option value="mersenne">Mersenne Twister</option>
+                        <option value="xorshift">XORShift Algorithm</option>
+                        <option value="entropy">Entropy-based (Mouse Movement)</option>
+                    </select>
+                </div>
+                <div class="parameter-item">
+                    <label>Ball Velocity</label>
+                    <div class="range-container">
+                        <input type="range" id="speedSlider" min="1" max="10" value="5">
+                        <span class="value-display" id="speedValue">5</span>
+                    </div>
+                </div>
+                <div class="parameter-item">
+                    <label>Generation Interval</label>
+                    <div class="range-container">
+                        <input type="range" id="intervalSlider" min="100" max="2000" value="500" step="100">
+                        <span class="value-display" id="intervalValue">500ms</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="statistics">
+            <div class="stat-item">
+                <div class="stat-label">Total Balls</div>
+                <div class="stat-value" id="totalBalls">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Falling</div>
+                <div class="stat-value" id="fallingBalls">0</div>
+            </div>
+            <div class="stat-item" id="entropyInfo" style="display: none;">
+                <div class="stat-label">Entropy Source</div>
+                <div class="stat-value" id="entropyValue">Move mouse over canvas</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2025 Statistical Demonstration Series</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Random number generators
+        class RandomGenerators {
+            constructor() {
+                // LCG parameters
+                this.lcgSeed = Date.now() % 2147483647;
+                
+                // Mersenne Twister initialization
+                this.mt = new Array(624);
+                this.mti = 0;
+                this.initMersenne(Date.now());
+                
+                // XORShift initialization
+                this.xorshiftState = [
+                    Date.now() & 0xFFFFFFFF,
+                    (Date.now() >> 10) & 0xFFFFFFFF,
+                    (Date.now() >> 20) & 0xFFFFFFFF,
+                    (Date.now() >> 30) & 0xFFFFFFFF
+                ];
+                
+                // Entropy variables
+                this.mouseX = 0;
+                this.mouseY = 0;
+                this.entropyPool = [];
+                
+                // Mouse movement listener
+                canvas.addEventListener('mousemove', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    this.mouseX = e.clientX - rect.left;
+                    this.mouseY = e.clientY - rect.top;
+                    this.entropyPool.push(Date.now() ^ (this.mouseX * 1000 + this.mouseY));
+                    if (this.entropyPool.length > 100) {
+                        this.entropyPool.shift();
+                    }
+                });
+            }
+            
+            default() {
+                return Math.random();
+            }
+            
+            lcg() {
+                const a = 1664525;
+                const c = 1013904223;
+                const m = 2147483647;
+                this.lcgSeed = (a * this.lcgSeed + c) % m;
+                return this.lcgSeed / m;
+            }
+            
+            initMersenne(seed) {
+                this.mt[0] = seed >>> 0;
+                for (this.mti = 1; this.mti < 624; this.mti++) {
+                    this.mt[this.mti] = (1812433253 * (this.mt[this.mti - 1] ^ (this.mt[this.mti - 1] >>> 30)) + this.mti) >>> 0;
+                }
+            }
+            
+            mersenne() {
+                if (this.mti >= 624) {
+                    for (let i = 0; i < 624; i++) {
+                        const y = (this.mt[i] & 0x80000000) + (this.mt[(i + 1) % 624] & 0x7fffffff);
+                        this.mt[i] = this.mt[(i + 397) % 624] ^ (y >>> 1);
+                        if (y % 2 !== 0) {
+                            this.mt[i] = this.mt[i] ^ 0x9908b0df;
+                        }
+                    }
+                    this.mti = 0;
+                }
+                
+                let y = this.mt[this.mti++];
+                y = y ^ (y >>> 11);
+                y = y ^ ((y << 7) & 0x9d2c5680);
+                y = y ^ ((y << 15) & 0xefc60000);
+                y = y ^ (y >>> 18);
+                
+                return (y >>> 0) / 4294967296;
+            }
+            
+            xorshift() {
+                let t = this.xorshiftState[0] ^ (this.xorshiftState[0] << 11);
+                this.xorshiftState[0] = this.xorshiftState[1];
+                this.xorshiftState[1] = this.xorshiftState[2];
+                this.xorshiftState[2] = this.xorshiftState[3];
+                this.xorshiftState[3] = (this.xorshiftState[3] ^ (this.xorshiftState[3] >>> 19) ^ (t ^ (t >>> 8))) >>> 0;
+                return this.xorshiftState[3] / 4294967296;
+            }
+            
+            entropy() {
+                const time = Date.now();
+                const mouseEntropy = (this.mouseX * 7919 + this.mouseY * 7927) % 1000;
+                const poolEntropy = this.entropyPool.length > 0 ? 
+                    this.entropyPool.reduce((a, b) => a ^ b, 0) % 1000 : 0;
+                
+                let hash = time ^ mouseEntropy ^ poolEntropy;
+                hash = ((hash ^ (hash >>> 16)) * 0x85ebca6b) >>> 0;
+                hash = ((hash ^ (hash >>> 13)) * 0xc2b2ae35) >>> 0;
+                hash = (hash ^ (hash >>> 16)) >>> 0;
+                
+                return (hash >>> 0) / 4294967296;
+            }
+            
+            getRandom(method) {
+                switch(method) {
+                    case 'lcg': return this.lcg();
+                    case 'mersenne': return this.mersenne();
+                    case 'xorshift': return this.xorshift();
+                    case 'entropy': return this.entropy();
+                    default: return this.default();
+                }
+            }
+        }
+        
+        const rng = new RandomGenerators();
+        let currentRngMethod = 'default';
+        
+        // Configuration
+        const config = {
+            rows: 12,
+            binCount: 13,
+            pegRadius: 3,
+            ballRadius: 2.5,
+            gravity: 0.3,
+            bounce: 0.5,
+            friction: 0.98
+        };
+
+        // Ball class
+        class Ball {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (rng.getRandom(currentRngMethod) - 0.5) * 0.5;
+                this.vy = 0;
+                this.radius = config.ballRadius;
+                this.brightness = Math.floor(rng.getRandom(currentRngMethod) * 100 + 155);
+                this.color = `rgb(${this.brightness}, ${this.brightness}, ${this.brightness})`;
+                this.settled = false;
+                this.trail = [];
+            }
+
+            update() {
+                if (this.settled) return;
+
+                if (!this.settled && this.trail.length > 0) {
+                    this.trail.push({ x: this.x, y: this.y });
+                    if (this.trail.length > 3) {
+                        this.trail.shift();
+                    }
+                }
+
+                this.vy += config.gravity * speedMultiplier;
+                this.vx *= config.friction;
+                this.x += this.vx * speedMultiplier;
+                this.y += this.vy * speedMultiplier;
+
+                // Peg collision
+                pegs.forEach(peg => {
+                    const dx = this.x - peg.x;
+                    const dy = this.y - peg.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < this.radius + peg.radius) {
+                        const angle = Math.atan2(dy, dx);
+                        const targetX = peg.x + Math.cos(angle) * (this.radius + peg.radius);
+                        const targetY = peg.y + Math.sin(angle) * (this.radius + peg.radius);
+                        
+                        this.x = targetX;
+                        this.y = targetY;
+                        
+                        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                        this.vx = Math.cos(angle) * speed * config.bounce;
+                        this.vy = Math.sin(angle) * speed * config.bounce;
+                        this.vx += (rng.getRandom(currentRngMethod) - 0.5) * 2;
+                    }
+                });
+
+                // Wall collision
+                if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
+                    this.vx *= -config.bounce;
+                    this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                }
+
+                // Bin placement
+                if (this.y > canvas.height - 100) {
+                    const binIndex = Math.floor(this.x / (canvas.width / config.binCount));
+                    if (binIndex >= 0 && binIndex < config.binCount) {
+                        const binX = (binIndex + 0.5) * (canvas.width / config.binCount);
+                        const currentHeight = bins[binIndex] * 5 + 5;
+                        
+                        if (this.y + this.radius >= canvas.height - currentHeight) {
+                            this.settled = true;
+                            this.x = binX;
+                            this.y = canvas.height - currentHeight - this.radius;
+                            bins[binIndex]++;
+                            this.trail = [];
+                        }
+                    }
+                }
+            }
+
+            draw() {
+                // Draw trail
+                if (!this.settled && this.trail.length > 0) {
+                    ctx.strokeStyle = this.color;
+                    ctx.lineWidth = 1;
+                    ctx.globalAlpha = 0.3;
+                    ctx.beginPath();
+                    this.trail.forEach((point, index) => {
+                        if (index === 0) {
+                            ctx.moveTo(point.x, point.y);
+                        } else {
+                            ctx.lineTo(point.x, point.y);
+                        }
+                    });
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+
+                // Draw ball
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Global variables
+        let pegs = [];
+        let balls = [];
+        let bins = new Array(config.binCount).fill(0);
+        let isRunning = false;
+        let isPaused = false;
+        let speedMultiplier = 1;
+        let spawnInterval = 500;
+        let lastSpawnTime = 0;
+
+        // Initialize pegs
+        function initPegs() {
+            pegs = [];
+            const pegSpacingX = canvas.width / (config.binCount - 1);
+            const pegSpacingY = (canvas.height - 200) / config.rows;
+            
+            for (let row = 0; row < config.rows; row++) {
+                const pegsInRow = config.binCount - 1 - row;
+                const rowOffset = row * pegSpacingX / 2;
+                
+                for (let col = 0; col < pegsInRow; col++) {
+                    pegs.push({
+                        x: rowOffset + col * pegSpacingX + pegSpacingX / 2,
+                        y: 50 + row * pegSpacingY,
+                        radius: config.pegRadius
+                    });
+                }
+            }
+        }
+
+        // Draw function
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw pegs
+            ctx.fillStyle = '#ffffff';
+            pegs.forEach(peg => {
+                ctx.beginPath();
+                ctx.arc(peg.x, peg.y, peg.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw bins
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= config.binCount; i++) {
+                const x = i * (canvas.width / config.binCount);
+                ctx.beginPath();
+                ctx.moveTo(x, canvas.height - 100);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Draw bottom line
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 100);
+            ctx.lineTo(canvas.width, canvas.height - 100);
+            ctx.stroke();
+            
+            // Draw balls
+            balls.forEach(ball => ball.draw());
+            
+            updateStats();
+        }
+
+        // Update function
+        function update(currentTime) {
+            if (!isRunning || isPaused) return;
+            
+            // Spawn new ball
+            if (currentTime - lastSpawnTime > spawnInterval) {
+                balls.push(new Ball(canvas.width / 2 + (rng.getRandom(currentRngMethod) - 0.5) * 10, 20));
+                lastSpawnTime = currentTime;
+            }
+            
+            // Update balls
+            balls.forEach(ball => ball.update());
+            
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalBalls').textContent = balls.length;
+            document.getElementById('fallingBalls').textContent = balls.filter(b => !b.settled).length;
+        }
+
+        // Reset
+        function reset() {
+            balls = [];
+            bins = new Array(config.binCount).fill(0);
+            draw();
+        }
+
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                isPaused = false;
+                requestAnimationFrame(update);
+            }
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            isPaused = !isPaused;
+            if (!isPaused && isRunning) {
+                requestAnimationFrame(update);
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            isRunning = false;
+            isPaused = false;
+            reset();
+        });
+
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            speedMultiplier = e.target.value / 5;
+            document.getElementById('speedValue').textContent = e.target.value;
+        });
+
+        document.getElementById('intervalSlider').addEventListener('input', (e) => {
+            spawnInterval = parseInt(e.target.value);
+            document.getElementById('intervalValue').textContent = e.target.value + 'ms';
+        });
+
+        document.getElementById('rngSelector').addEventListener('change', (e) => {
+            currentRngMethod = e.target.value;
+            document.getElementById('entropyInfo').style.display = 
+                currentRngMethod === 'entropy' ? 'block' : 'none';
+        });
+        
+        // Update entropy display
+        setInterval(() => {
+            if (currentRngMethod === 'entropy') {
+                const poolSize = rng.entropyPool.length;
+                document.getElementById('entropyValue').textContent = 
+                    `X:${Math.round(rng.mouseX)} Y:${Math.round(rng.mouseY)} Pool:${poolSize}`;
+            }
+        }, 100);
+
+        // Initialize
+        initPegs();
+        draw();
+    </script>
+</body>
+</html>
