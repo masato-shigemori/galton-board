@@ -601,8 +601,8 @@
         function update(currentTime) {
             if (!isRunning || isPaused) return;
             
-            // Spawn new ball (max 200 balls)
-            if (currentTime - lastSpawnTime > spawnInterval && balls.length < 200) {
+            // Spawn new ball (max 128 balls)
+            if (currentTime - lastSpawnTime > spawnInterval && balls.length < 128) {
                 balls.push(new Ball(canvas.width / 2 + (rng.getRandom(currentRngMethod) - 0.5) * 10, 20));
                 lastSpawnTime = currentTime;
             }
